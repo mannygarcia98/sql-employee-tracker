@@ -14,34 +14,21 @@ const prompts = () => {
       type: "list",
       name: "action",
       message: "What would you like to do?",
-      choices: ["View all departments", "View all roles", "View all employees", "Add a department"],
+      choices: ["View all departments", "View all roles", "View all employees", "Add a department", "Add a role"],
     },
   ]);
 };
 
-// view all departments
-// const viewAllDepartments = () => {
-//   let sql = `SELECT * FROM department`;
-//   db.query(sql, (err, rows) => {
-//     // console.log(`
-//     // All departments
-//     // `);
-//     console.table(rows);
-//     promptUser();
-//   });
-// };
-
 const viewAllDepartments = () => {
-  let sql = query.viewAllDepartments;
+  let sql = query.allDepartments;
   db.query(sql, (err, rows) => {
     console.table(rows);
     promptUser();
   });
 };
 
-// view all roles
 const viewAllRoles = () => {
-  let sql = query.viewAllRoles;
+  let sql = query.allRoles;
   db.query(sql, (err, rows) => {
     if (err) {
       console.log(err);
@@ -52,7 +39,7 @@ const viewAllRoles = () => {
 };
 
 const viewAllEmployees = () => {
-  let sql = query.viewAllEmployees;
+  let sql = query.allEmployees;
   db.query(sql, (err, rows) => {
     if (err) {
       console.log(err);
@@ -89,6 +76,72 @@ const addDepartment = () => {
     });
 };
 
+// add a role
+const addRole = () => {
+  // retrieve all departments
+  let sql = query.allDepartments;
+  db.query(sql, (error, response) => {
+    let departmentArray = [];
+    response.forEach((department) => {
+      departmentArray.push(department.name);
+    });
+    inquirer
+      .prompt([
+        {
+          name: "roleName",
+          type: "input",
+          message: "What is the name of the role?",
+          validate: (nameInput) => {
+            if (nameInput) {
+              return true;
+            } else {
+              console.log("Please enter the name of the role.");
+              return false;
+            }
+          },
+        },
+        {
+          name: "roleSalary",
+          type: "input",
+          message: "What is the salary of the role?",
+          validate: (salaryInput) => {
+            if (salaryInput) {
+              return true;
+            } else {
+              console.log("Please enter the salary of the role.");
+              return false;
+            }
+          },
+        },
+        {
+          name: "roleDepartment",
+          type: "list",
+          message: "Which department does the role belong to?",
+          choices: departmentArray,
+        },
+      ])
+      .then((newRoleData) => {
+        const { roleName, roleSalary, roleDepartment } = newRoleData;
+        let departmentId;
+
+        response.forEach((department) => {
+          if (roleDepartment === department.name) {
+            departmentId = department.id;
+          }
+        });
+        let sql = query.addRole;
+        let params = [roleName, roleSalary, departmentId];
+        db.query(sql, params, (error, response) => {
+          if (error) {
+            console.log(error);
+          }
+          console.log(`${roleName} role added to the ${roleDepartment} department.`);
+          promptUser();
+        });
+      });
+  });
+};
+
 const promptUser = () => {
   prompts().then((choice) => {
     const { action } = choice;
@@ -103,6 +156,9 @@ const promptUser = () => {
     }
     if (action === "Add a department") {
       addDepartment();
+    }
+    if (action === "Add a role") {
+      addRole();
     }
   });
 };
