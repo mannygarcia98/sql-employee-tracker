@@ -1,22 +1,12 @@
 const db = require("./db/connection");
 const cTable = require("console.table");
 const inquirer = require("inquirer");
+const query = require("./db/queries");
 
 db.connect((err) => {
   if (err) throw err;
   // console.log("Database connected.");
 });
-
-// const promptUser = () => {
-//   return inquirer.prompt([
-//     {
-//       type: "list",
-//       name: "action",
-//       message: "What would you like to do?",
-//       choices: ["View all departments", "View all roles", "View all employees"],
-//     },
-//   ]);
-// };
 
 const prompts = () => {
   return inquirer.prompt([
@@ -24,17 +14,26 @@ const prompts = () => {
       type: "list",
       name: "action",
       message: "What would you like to do?",
-      choices: ["View all departments", "View all roles", "View all employees"],
+      choices: ["View all departments", "View all roles", "View all employees", "Add a department"],
     },
   ]);
 };
 
 // view all departments
+// const viewAllDepartments = () => {
+//   let sql = `SELECT * FROM department`;
+//   db.query(sql, (err, rows) => {
+//     // console.log(`
+//     // All departments
+//     // `);
+//     console.table(rows);
+//     promptUser();
+//   });
+// };
+
 const viewAllDepartments = () => {
-  db.query(`SELECT * FROM department`, (err, rows) => {
-    console.log(`
-    All departments
-    `);
+  let sql = query.viewAllDepartments;
+  db.query(sql, (err, rows) => {
     console.table(rows);
     promptUser();
   });
@@ -42,70 +41,68 @@ const viewAllDepartments = () => {
 
 // view all roles
 const viewAllRoles = () => {
-  db.query(
-    `SELECT role.id, title, department.name AS department_name, salary
-      FROM role
-      LEFT JOIN department ON role.department_id = department.id;`,
-    (err, rows) => {
-      if (err) {
-        console.log(err);
-      }
-      console.log(`
-      All roles
-      `);
-      console.table(rows);
-      promptUser();
+  let sql = query.viewAllRoles;
+  db.query(sql, (err, rows) => {
+    if (err) {
+      console.log(err);
     }
-  );
+    console.table(rows);
+    promptUser();
+  });
 };
 
 const viewAllEmployees = () => {
-  db.query(
-    `SELECT employee.id, employee.first_name, employee.last_name, role.title AS role, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager 
-    FROM employee LEFT JOIN role on employee.role_id = role.id 
-    LEFT JOIN department department on role.department_id = department.id 
-    LEFT JOIN employee manager on manager.id = employee.manager_id;`,
-    (err, rows) => {
-      if (err) {
-        console.log(err);
-      }
-      console.log(`
-    All employees
-    `);
-      console.table(rows);
-      promptUser();
+  let sql = query.viewAllEmployees;
+  db.query(sql, (err, rows) => {
+    if (err) {
+      console.log(err);
     }
-  );
+    console.table(rows);
+    promptUser();
+  });
 };
 
-// promptUser()
-//   .then((action) => {
-//     const { choice } = action;
-//     if (choice = "View all departments")
-//   })
-
-// promptUser().then((response) => {
-//   const { action } = response;
-//   if (action === "View all departments") {
-//     viewAllDepartments();
-//   } else if (action === "View all roles") {
-//     viewAllRoles();
-//   } else {
-//     viewAllEmployees();
-//   }
-//   promptUser();
-//   // console.log(action);
-// });
+const addDepartment = () => {
+  inquirer
+    .prompt([
+      {
+        name: "newDepartment",
+        type: "input",
+        message: "What is the name of the department?",
+        validate: (departmentInput) => {
+          if (departmentInput) {
+            return true;
+          } else {
+            console.log("Please enter the name of the department.");
+            return false;
+          }
+        },
+      },
+    ])
+    .then((answer) => {
+      let sql = query.addDepartment;
+      db.query(sql, answer.newDepartment, (error, response) => {
+        if (error) throw error;
+        console.log(`${answer.newDepartment} department added.`);
+        promptUser();
+      });
+    });
+};
 
 const promptUser = () => {
-  prompts().then((response) => {
-    const { action } = response;
+  prompts().then((choice) => {
+    const { action } = choice;
     if (action === "View all departments") {
       viewAllDepartments();
-    } else if (action === "View all roles") {
+    }
+    if (action === "View all roles") {
       viewAllRoles();
-    } else {
+    }
+    if (action === "View all employees") {
       viewAllEmployees();
+    }
+    if (action === "Add a department") {
+      addDepartment();
     }
   });
 };
