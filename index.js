@@ -5,7 +5,6 @@ const query = require("./db/queries");
 
 db.connect((err) => {
   if (err) throw err;
-  // console.log("Database connected.");
 });
 
 const prompts = () => {
@@ -14,7 +13,7 @@ const prompts = () => {
       type: "list",
       name: "action",
       message: "What would you like to do?",
-      choices: ["View all departments", "View all roles", "View all employees", "Add a department", "Add a role"],
+      choices: ["View all departments", "View all roles", "View all employees", "Add a department", "Add a role", "Add an employee"],
     },
   ]);
 };
@@ -135,7 +134,89 @@ const addRole = () => {
           if (error) {
             console.log(error);
           }
-          console.log(`${roleName} role added to the ${roleDepartment} department.`);
+          console.log(`The ${roleName} role was added to the ${roleDepartment} department.`);
+          promptUser();
+        });
+      });
+  });
+};
+
+const addEmployee = () => {
+  // retrieve all roles
+  let sql = query.roles;
+  db.query(sql, (error, response) => {
+    let roleArray = [];
+    response.forEach((role) => {
+      roleArray.push(role.title);
+    });
+    // console.log(roleArray);
+    inquirer
+      .prompt([
+        {
+          name: "firstName",
+          type: "input",
+          message: "What is the employee's first name?",
+          validate: (nameInput) => {
+            if (nameInput) {
+              return true;
+            } else {
+              console.log("Please enter the name of the employee.");
+              return false;
+            }
+          },
+        },
+        {
+          name: "lastName",
+          type: "input",
+          message: "What is the employee's last name?",
+          validate: (nameInput) => {
+            if (nameInput) {
+              return true;
+            } else {
+              console.log("Please enter the name of the employee.");
+              return false;
+            }
+          },
+        },
+        {
+          name: "employeeRole",
+          type: "list",
+          message: "What is the employee's role?",
+          choices: roleArray,
+        },
+        {
+          name: "employeeManager",
+          type: "list",
+          message: "Who is the employee's manager?",
+          choices: ["John Doe", "Ashley Rodriguez", "Kunal Singh", "Sarah Lourd"],
+        },
+      ])
+      .then((newEmployeeData) => {
+        const { firstName, lastName, employeeRole, employeeManager } = newEmployeeData;
+        let roleId;
+        let managerId;
+        managerName = employeeManager.split(" ", 1);
+        response.forEach((employee) => {
+          if (managerName == employee.first_name) {
+            managerId = employee.id;
+            // console.log(managerId);
+          }
+          // console.log(managerId);
+        });
+        response.forEach((role) => {
+          if (employeeRole === role.title) {
+            roleId = role.id;
+          }
+          // console.log(role.title);
+        });
+
+        let sql = query.addEmployee;
+        let params = [firstName, lastName, roleId, managerId];
+        db.query(sql, params, (error, response) => {
+          if (error) {
+            console.log(error);
+          }
+          console.log(`The employee was added to the database.`);
           promptUser();
         });
       });
@@ -159,6 +240,9 @@ const promptUser = () => {
     }
     if (action === "Add a role") {
       addRole();
+    }
+    if (action === "Add an employee") {
+      addEmployee();
     }
   });
 };
