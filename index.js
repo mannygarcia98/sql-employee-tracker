@@ -1,12 +1,15 @@
+// Require
 const db = require("./db/connection");
 const cTable = require("console.table");
 const inquirer = require("inquirer");
 const query = require("./db/queries");
 
+// Connect to database
 db.connect((err) => {
   if (err) throw err;
 });
 
+// Main choices
 const prompts = () => {
   return inquirer.prompt([
     {
@@ -18,6 +21,7 @@ const prompts = () => {
   ]);
 };
 
+// Makes SQL query for all departments
 const viewAllDepartments = () => {
   let sql = query.allDepartments;
   db.query(sql, (err, rows) => {
@@ -26,6 +30,7 @@ const viewAllDepartments = () => {
   });
 };
 
+// Makes SQL query for all roles
 const viewAllRoles = () => {
   let sql = query.allRoles;
   db.query(sql, (err, rows) => {
@@ -37,6 +42,7 @@ const viewAllRoles = () => {
   });
 };
 
+// Makes SQL query for all employees
 const viewAllEmployees = () => {
   let sql = query.allEmployees;
   db.query(sql, (err, rows) => {
@@ -149,7 +155,6 @@ const addEmployee = () => {
     response.forEach((role) => {
       roleArray.push(role.title);
     });
-    // console.log(roleArray);
     inquirer
       .prompt([
         {
@@ -196,13 +201,13 @@ const addEmployee = () => {
         let roleId;
         let managerId;
         managerName = employeeManager.split(" ", 1);
+        // gets manager name and id
         response.forEach((employee) => {
           if (managerName == employee.first_name) {
             managerId = employee.id;
-            // console.log(managerId);
           }
-          // console.log(managerId);
         });
+        // gets id for role
         response.forEach((role) => {
           if (employeeRole === role.title) {
             roleId = role.id;
@@ -247,4 +252,5 @@ const promptUser = () => {
   });
 };
 
+// Starts the inquirer prompts
 promptUser();
