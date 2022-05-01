@@ -20,6 +20,8 @@
 
   </br>
   
+  ![](./assets/main-menu.png)
+  ![](./assets/department-example.png)
   ## Description
   SQL Employee Tracker is a command-line content management system to manager a company's employee database.
   
@@ -29,7 +31,10 @@
 3. Create a .env file and enter MySQL credentials (the database name is "employee_db")
 4. Seed the directory by running MySQL shell and running source db/schema.sql.
 5. Run npm start
-6. You will be given several options for navigating your employee database. 
+6. You will be given several options for navigating your employee database.
+
+A walkthrough video can be found [here](https://drive.google.com/file/d/1Ikz0qpZLZn1ui6WQYx7RixUifKKGU85q/view)
+
 ## Usage
 
 This application can be used for company's of all sizes to keep track of employees' roles, salary, and managers. Various SQL queries are run depending on the user's response to the prompts.
